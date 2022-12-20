@@ -61,7 +61,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
       - name: Log in to GitHub container registry
-        run: ssh server 'docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_TOKEN }}'
+        run: ssh server 'docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_PAT }}'
       - name: Pull image
         run: ssh server 'docker pull ghcr.io/selsovid/reverse-proxy:latest'
       - name: Run image
