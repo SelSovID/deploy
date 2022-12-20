@@ -43,29 +43,33 @@ jobs:
     steps:
       - name: Lowercase the repo name and username
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_KEY" > ~/.ssh/server.key
+          chmod 600 ~/.ssh/server.key
+          cat >>~/.ssh/config <<END
+          Host server
+            HostName $SSH_HOST
+            User $SSH_USER
+            IdentityFile ~/.ssh/server.key
+            StrictHostKeyChecking no
+          END
+        env:
+          SSH_USER: ${{ secrets.SSH_USERNAME }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
       - name: Log in to GitHub container registry
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_TOKEN }}
+        run: ssh server 'docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_TOKEN }}'
       - name: Pull image
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: docker pull ghcr.io/selsovid/reverse-proxy:latest
+        run: ssh server 'docker pull ghcr.io/selsovid/reverse-proxy:latest'
       - name: Run image
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            docker run -d \
-              --restart=always
-              -e VIRTUAL_HOST=ssi.s.mees.io
-              -e LETSENCRYPT_HOST=ssi.s.mees.io
-              ghcr.io/selsovid/reverse-proxy:latest
+        run: |
+          ssh server '\
+          docker run -d \
+              --restart=always \
+              -e VIRTUAL_HOST=ssi.s.mees.io \
+              -e LETSENCRYPT_HOST=ssi.s.mees.io \
+              ghcr.io/selsovid/reverse-proxy:latest \
+          '
