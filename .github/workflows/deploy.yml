@@ -44,21 +44,21 @@ jobs:
       - name: Lowercase the repo name and username
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
       - name: Log in to GitHub container registry
-        uses: appleboy/ssh-action@0.1.6
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_TOKEN }}
       - name: Pull image
-        uses: appleboy/ssh-action@0.1.6
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: docker pull ghcr.io/selsovid/reverse-proxy:latest
       - name: Run image
-        uses: appleboy/ssh-action@0.1.6
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
