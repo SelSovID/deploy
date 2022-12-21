@@ -84,7 +84,7 @@ jobs:
               --restart=always \
               -e VIRTUAL_HOST=${{ secrets.SSI_DOMAIN }} \
               -e LETSENCRYPT_HOST=${{ secrets.SSI_DOMAIN }} \
-              --network=${{ secrets.DOCKER_NETWORK }}
+              --network=${{ secrets.DOCKER_NETWORK }} \
               --name ${{ env.container_name }} \
               ghcr.io/${{ env.REPO }}:${{ github.sha }} \
           '
