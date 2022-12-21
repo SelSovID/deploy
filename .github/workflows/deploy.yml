@@ -67,7 +67,9 @@ jobs:
         run: ssh server 'docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_PAT }}'
 
       - name: remove previous image
-        run: ssh server 'docker image rm ghcr.io/${{ env.REPO }}'
+        run: |
+          ssh server 'docker images | grep ${{ env.REPO }} | tr -s ' ' | cut -d ' ' -f 2 | xargs -I {} docker rmi \
+          ghcr.io/${{ env.REPO }}:{}'
         continue-on-error: true
 
       - name: Pull image
