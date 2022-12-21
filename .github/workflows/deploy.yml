@@ -39,6 +39,8 @@ jobs:
       contents: none
     runs-on: ubuntu-latest
     needs: build
+    env:
+      container_name: ssi-proxy
 
     steps:
       - name: Lowercase the repo name and username
@@ -60,16 +62,27 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USERNAME }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+
       - name: Log in to GitHub container registry
         run: ssh server 'docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GH_PAT }}'
+
+      - name: remove previous image
+        run: ssh server 'docker image rm ghcr.io/${{ env.REPO }}'
+
       - name: Pull image
         run: ssh server 'docker pull ghcr.io/${{ env.REPO }}:${{ github.sha }}'
+
+      - name: Stop and delete previous container
+        run: ssh server 'docker stop ${{ env.container_name }} && docker rm ${{ env.container_name }}'
+
       - name: Run image
         run: |
           ssh server '\
           docker run -d \
               --restart=always \
-              -e VIRTUAL_HOST=ssi.s.mees.io \
-              -e LETSENCRYPT_HOST=ssi.s.mees.io \
+              -e VIRTUAL_HOST=${{ secrets.SSI_DOMAIN }} \
+              -e LETSENCRYPT_HOST=${{ secrets.SSI_DOMAIN }} \
+              --network=${{ secrets.DOCKER_NETWORK }}
+              --name ${{ env.container_name }} \
               ghcr.io/${{ env.REPO }}:${{ github.sha }} \
           '
